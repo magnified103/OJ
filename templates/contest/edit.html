@@ -20,10 +20,27 @@
     </script>
 
     <script src="{{ static('vnoj/jquery.formset.js') }}"></script>
+    <script type="text/javascript" src="{{ static('vnoj/jquery-ui/jquery-ui.min.js') }}"></script>
     <script type="text/javascript">
         $(function() {
+            function rebuild_problem_order() {
+                $('#form_set').find('input[id$=ORDER]').each(function (i, ele) {
+                    ele.value = i + 1;
+                });
+            }
+
+            rebuild_problem_order();
+
+            $('#form_set').sortable({
+                stop: function (event, ui) {
+                    rebuild_problem_order();
+                }
+            });
+
             $('#form_set tr').formset({
-                prefix: '{{ contest_problem_formset.prefix }}'
+                handle: 'i.fa-ellipsis-v',
+                added: rebuild_problem_order,
+                removed: rebuild_problem_order,
             });
 
             var noResults = function () {
@@ -68,6 +85,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     {{ form.media.css }}
     <link rel="stylesheet" type="text/css" href="{{ static('ui_form.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ static('vnoj/jquery-ui/jquery-ui.min.css') }}">
+    <style>
+        i.fa-ellipsis-v {
+            cursor: move;
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
@@ -79,9 +102,14 @@
     </tr>
     {% endif %}
     <tr>
+        <td>
+        {% if contest_problem_formset.can_order %}
+            {{ form.ORDER.as_hidden() }}
+            <i class="fa fa-fw fa-lg fa-ellipsis-v"></i>
+        {% endif %}
+        </td>
         <td>{{ form.id }} {{ form.problem.errors }}{{ form.problem }}</td>
         <td class="points-column">{{ form.points.errors }}{{ form.points }}</td>
-        <td>{{ form.order.errors }}{{ form.order }}</td>
         <td>{{ form.max_submissions.errors }}{{ form.max_submissions }}</td>
         <td>
         {% if contest_problem_formset.can_delete and form.instance.pk %}
@@ -112,9 +140,9 @@
         <table class="table">
             <thead>
                 <tr>
+                    <th>#</th>
                     <th class="problem-column" style="width: 20em;"> {{ _('Problems') }} </th>
                     <th class="points-column"> {{ _('Points') }} </th>
-                    <th> {{ _('Order in contest') }} </th>
                     <th>
                         {{ _('Max submission') }}
                         <br>

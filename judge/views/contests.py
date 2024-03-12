@@ -1332,13 +1332,15 @@ class EditContest(ContestMixin, LoginRequiredMixin, TitleMixin, UpdateView):
         if form.is_valid() and form_set.is_valid():
             with revisions.create_revision(atomic=True):
                 form.save()
-                problems = form_set.save(commit=False)
+                form_set.save(commit=False)
 
                 for problem in form_set.deleted_objects:
                     problem.delete()
 
-                for problem in problems:
+                for index, form in enumerate(form_set.ordered_forms):
+                    problem = form.save(commit=False)
                     problem.contest = self.object
+                    problem.order = index + 1
                     problem.save()
 
                 revisions.set_comment(_('Edited from site'))

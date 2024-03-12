@@ -636,7 +636,7 @@ class ProposeContestProblemForm(ModelForm):
         verbose_name = _('Problem')
         verbose_name_plural = 'Problems'
         fields = (
-            'problem', 'points', 'order', 'max_submissions',
+            'problem', 'points', 'max_submissions',
         )
 
         widgets = {
@@ -653,23 +653,10 @@ class ProposeContestProblemFormSet(
             Contest,
             ContestProblem,
             form=ProposeContestProblemForm,
+            can_order=True,
             can_delete=True,
         )):
-
-    def clean(self) -> None:
-        """Checks that no Contest problems have the same order."""
-        super(ProposeContestProblemFormSet, self).clean()
-        if any(self.errors):
-            # Don't bother validating the formset unless each form is valid on its own
-            return
-        orders = []
-        for form in self.forms:
-            if self.can_delete and self._should_delete_form(form):
-                continue
-            order = form.cleaned_data.get('order')
-            if order and order in orders:
-                raise ValidationError(_('Problems must have distinct order.'))
-            orders.append(order)
+    pass
 
 
 class BlogPostForm(ModelForm):
