@@ -129,7 +129,7 @@ class UserForm(ModelForm):
 class ProposeProblemSolutionForm(ModelForm):
     class Meta:
         model = Solution
-        fields = ('is_public', 'publish_on', 'authors', 'content')
+        fields = ('is_official', 'is_public', 'publish_on', 'authors', 'content')
         widgets = {
             'authors': HeavySelect2MultipleWidget(data_view='profile_select2', attrs={'style': 'width: 100%'}),
             'content': MartorWidget(attrs={'data-markdownfy-url': reverse_lazy('solution_preview')}),
@@ -296,7 +296,8 @@ class ProblemImportPolygonStatementFormSet(formset_factory(ProblemImportPolygonS
     pass
 
 
-class ProposeProblemSolutionFormSet(inlineformset_factory(Problem, Solution, form=ProposeProblemSolutionForm)):
+class ProposeProblemSolutionFormSet(inlineformset_factory(Problem, Solution, form=ProposeProblemSolutionForm,
+                                                          max_num=1)):
     pass
 
 

@@ -105,31 +105,33 @@ class SolvedProblemMixin(object):
         return self.request.profile
 
 
-class ProblemSolution(SolvedProblemMixin, ProblemMixin, TitleMixin, CommentedDetailView):
-    context_object_name = 'problem'
+class ProblemSolution(SolvedProblemMixin, TitleMixin, CommentedDetailView):
+    model = Solution
+    context_object_name = 'solution'
     template_name = 'problem/editorial.html'
 
     def get_title(self):
-        return _('Editorial for {0}').format(self.object.name)
+        return str(self.object)
 
     def get_content_title(self):
-        return mark_safe(escape(_('Editorial for {0}')).format(
-            format_html('<a href="{1}">{0}</a>', self.object.name, reverse('problem_detail', args=[self.object.code])),
+        return mark_safe(escape(_('Editorial for {0}' if self.object.is_public else 'Editorial proposal for {0}'))
+        .format(
+            format_html('<a href="{1}">{0}</a>', self.problem.name,
+                        reverse('problem_detail', args=[self.problem.code])),
         ))
 
     def get_context_data(self, **kwargs):
+        self.problem = self.object.problem
         context = super(ProblemSolution, self).get_context_data(**kwargs)
 
-        solution = get_object_or_404(Solution, problem=self.object)
-
-        if not solution.is_accessible_by(self.request.user) or self.request.in_contest:
+        if not self.object.is_accessible_by(self.request.user) or self.request.in_contest:
             raise Http404()
-        context['solution'] = solution
-        context['has_solved_problem'] = self.object.id in self.get_completed_problems()
+        context['problem'] = self.problem
+        context['has_solved_problem'] = self.problem.id in self.get_completed_problems()
         return context
 
     def get_comment_page(self):
-        return 's:' + self.object.code
+        return 's:' + str(self.object.id)
 
     def no_such_problem(self):
         code = self.kwargs.get(self.slug_url_kwarg, None)
@@ -222,7 +224,7 @@ class ProblemDetail(ProblemMixin, SolvedProblemMixin, CommentedDetailView):
             context['num_open_tickets'] = tickets.filter(is_open=True).values('id').distinct().count()
 
         try:
-            context['editorial'] = Solution.objects.get(problem=self.object)
+            context['editorial'] = Solution.objects.get(problem=self.object, is_official=True)
         except ObjectDoesNotExist:
             pass
         try:
@@ -391,7 +393,7 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
         if self.show_types:
             queryset = queryset.prefetch_related('types')
         queryset = queryset.annotate(has_public_editorial=Case(
-            When(solution__is_public=True, solution__publish_on__lte=timezone.now(), then=True),
+            When(solutions__is_official=True, solutions__is_public=True, solutions__publish_on__lte=timezone.now(), then=True),
             default=False,
             output_field=BooleanField(),
         ))
@@ -990,7 +992,8 @@ class ProblemEdit(ProblemMixin, TitleMixin, UpdateView):
     def get_solution_formset(self):
         if self.request.POST:
             return ProposeProblemSolutionFormSet(self.request.POST, instance=self.get_object())
-        return ProposeProblemSolutionFormSet(instance=self.get_object())
+        return ProposeProblemSolutionFormSet(instance=self.get_object(),
+                                             queryset=Solution.objects.filter(is_official=True))
 
     def get_language_limit_formset(self):
         if self.request.POST:

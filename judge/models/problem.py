@@ -23,7 +23,7 @@ from judge.user_translations import gettext as user_gettext
 from judge.utils.url import get_absolute_pdf_url
 
 __all__ = ['ProblemGroup', 'ProblemType', 'Problem', 'ProblemTranslation', 'ProblemClarification', 'License',
-           'Solution', 'SubmissionSourceAccess', 'TranslatedProblemQuerySet']
+           'SolutionProposal', 'SubmissionSourceAccess', 'TranslatedProblemQuerySet']
 
 
 def disallowed_characters_validator(text):
@@ -666,9 +666,10 @@ class LanguageLimit(models.Model):
 
 
 class Solution(models.Model):
-    problem = models.OneToOneField(Problem, on_delete=CASCADE, verbose_name=_('associated problem'),
-                                   blank=True, related_name='solution')
+    problem = models.ForeignKey(Problem, on_delete=CASCADE, verbose_name=_('associated problem'),
+                                related_name='solutions')
     is_public = models.BooleanField(verbose_name=_('public visibility'), default=False)
+    is_official = models.BooleanField(verbose_name=_('official editorial'), default=False)
     publish_on = models.DateTimeField(verbose_name=_('publish date'))
     authors = models.ManyToManyField(Profile, verbose_name=_('authors'), blank=True)
     content = models.TextField(verbose_name=_('editorial content'), validators=[disallowed_characters_validator])
@@ -678,23 +679,38 @@ class Solution(models.Model):
         if problem is None:
             return reverse('home')
         else:
-            return reverse('problem_editorial', args=[problem.code])
+            return reverse('problem_editorial', args=(problem.code, self.pk))
 
     def __str__(self):
-        return _('Editorial for %s') % self.problem.name
+        if self.is_official:
+            return _('Editorial for %s') % self.problem.name
+        else:
+            return _('Editorial proposal for %s') % self.problem.name
 
     def is_accessible_by(self, user):
-        if self.is_public and self.publish_on < timezone.now():
+        if self.is_official and self.is_public and self.publish_on is not None and self.publish_on < timezone.now():
             return True
         if user.has_perm('judge.see_private_solution'):
             return True
         if self.problem.is_editable_by(user):
+            return True
+        if self.problem.is_accessible_by(user) and user.has_perm('judge.see_solution_proposal'):
+            return True
+        return False
+
+    def is_editable_by(self, user):
+        if not user.is_authenticated:
+            return False
+        if self.problem.is_editable_by(user):
+            return True
+        if self.problem.is_accessible_by(user) and self.authors.filter(id=user.profile.id).exists():
             return True
         return False
 
     class Meta:
         permissions = (
             ('see_private_solution', _('See hidden solutions')),
+            ('see_solution_proposal', _('See solution proposals')),
         )
         verbose_name = _('solution')
         verbose_name_plural = _('solutions')
