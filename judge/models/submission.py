@@ -261,6 +261,9 @@ class Submission(models.Model):
         verbose_name_plural = _('submissions')
 
         indexes = [
+            # For retrieving latest submissions of a problem
+            models.Index(fields=['problem', '-id']),
+
             # For problem submission rankings
             models.Index(fields=['problem', 'user', '-points', '-time']),
 

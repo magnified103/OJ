@@ -354,6 +354,7 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
     template_name = 'submission/list.html'
     context_object_name = 'submissions'
     first_page_href = None
+    enable_straight_join = True
 
     def get_result_data(self):
         result = self._get_result_data()
@@ -379,7 +380,8 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
 
     def _get_queryset(self):
         queryset = Submission.objects.all()
-        use_straight_join(queryset)
+        if self.enable_straight_join and not self.selected_organization:
+            use_straight_join(queryset)
         queryset = submission_related(queryset.order_by('-id'))
         if self.show_problem:
             queryset = queryset.prefetch_related(Prefetch('problem__translations',

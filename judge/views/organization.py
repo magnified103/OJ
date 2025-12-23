@@ -654,6 +654,7 @@ class ContestListOrganization(PrivateOrganizationMixin, ContestList):
 class SubmissionListOrganization(InfinitePaginationMixin, PrivateOrganizationMixin, SubmissionsListBase):
     template_name = 'organization/submission-list.html'
     permission_bypass = ['judge.view_all_submission']
+    enable_straight_join = False
 
     def _get_queryset(self):
         query_set = super(SubmissionListOrganization, self)._get_queryset()
