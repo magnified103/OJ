@@ -377,8 +377,16 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
     def contest(self):
         return self.request.profile.current_contest.contest
 
+    def _filter_queryset_by_organization(self, queryset):
+        if self.selected_organization:
+            organization_object = get_object_or_404(Organization, pk=self.selected_organization)
+            queryset = queryset.filter(user__organizations=organization_object)
+        return queryset
+
     def _get_queryset(self):
         queryset = Submission.objects.all()
+        # the organization JOIN and filter is done first for performance reasons
+        queryset = self._filter_queryset_by_organization(queryset)
         use_straight_join(queryset)
         queryset = submission_related(queryset.order_by('-id'))
         if self.show_problem:
@@ -411,9 +419,6 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
                 Language.objects.filter(key__in=self.selected_languages).values_list('id', flat=True)))
         if self.selected_statuses:
             queryset = queryset.filter(Q(result__in=self.selected_statuses) | Q(status__in=self.selected_statuses))
-        if self.selected_organization:
-            organization_object = get_object_or_404(Organization, pk=self.selected_organization)
-            queryset = queryset.filter(user__organizations=organization_object)
 
         return queryset
 
