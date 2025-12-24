@@ -656,7 +656,7 @@ class SubmissionListOrganization(InfinitePaginationMixin, PrivateOrganizationMix
     permission_bypass = ['judge.view_all_submission']
 
     def _filter_queryset_by_organization(self, queryset):
-        return queryset.filter(problem_id__in=Problem.objects.filter(organization=self.organization).values('id'))
+        return queryset.filter(problem__in=Problem.objects.filter(organization=self.organization))
 
     def get_context_data(self, **kwargs):
         context = super(SubmissionListOrganization, self).get_context_data(**kwargs)
