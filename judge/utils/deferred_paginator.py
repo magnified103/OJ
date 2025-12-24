@@ -38,7 +38,7 @@ class DeferredPaginationListViewMixin:
             #     alias='deferred_object',
             #     related_model=self.__class__.paginated_model,
             # )
-            queryset = self.__class__.paginated_model.objects.filter(pk__in=queryset_pks)
+            queryset = self.__class__.paginated_model.objects.filter(pk__in=list(queryset_pks))
             queryset = self.deferred_paginate(queryset)
 
             page.object_list = object_list
