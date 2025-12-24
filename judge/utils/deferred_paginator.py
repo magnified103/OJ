@@ -28,16 +28,17 @@ class DeferredPaginationListViewMixin:
             paginator, page, queryset_pks, is_paginated = self.paginate_queryset(
                 queryset_pks, page_size
             )
-            query, params = queryset_pks.query.sql_with_params()
-            queryset = self.__class__.paginated_model.objects.all()
-            join_sql_subquery(
-                queryset,
-                subquery=query,
-                params=list(params),
-                join_fields=[('id', 'id')],
-                alias='deferred_object',
-                related_model=self.__class__.paginated_model,
-            )
+            # query, params = queryset_pks.query.sql_with_params()
+            # queryset = self.__class__.paginated_model.objects.all()
+            # join_sql_subquery(
+            #     queryset,
+            #     subquery=query,
+            #     params=list(params),
+            #     join_fields=[('id', 'id')],
+            #     alias='deferred_object',
+            #     related_model=self.__class__.paginated_model,
+            # )
+            queryset = self.__class__.paginated_model.objects.filter(pk__in=queryset_pks)
             queryset = self.deferred_paginate(queryset)
 
             page.object_list = object_list
