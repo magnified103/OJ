@@ -284,6 +284,9 @@ class Submission(models.Model):
 
             # For user_completed_ids
             models.Index(fields=['user', 'result']),
+
+            # For organization filtering
+            models.Index(fields=['problem', '-id']),
         ]
 
 
