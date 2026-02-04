@@ -28,10 +28,10 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
     - name: Set up dependencies
-      run: apt-get update && apt-get install -y nodejs git libmysqlclient-dev libsqlite3-0 gcc pkg-config
-    - name: Clear Python cache
-      run: |
-        rm -rf /__t/Python
+      run: sudo apt-get update && apt-get install -y nodejs git libmysqlclient-dev libsqlite3-0 gcc pkg-config
+    # - name: Clear Python cache
+    #   run: |
+    #     rm -rf /__t/Python
     - uses: actions/checkout@v4
     - name: Set up Python 3.12
       uses: actions/setup-python@v5
