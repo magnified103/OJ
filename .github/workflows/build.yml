@@ -42,7 +42,7 @@ jobs:
     - name: Install unit test dependencies
       run: |
         which pip
-        pip --version
+        $(which pip) --version
         pip install wheel
         pip install -r requirements.txt
         pip install coverage
