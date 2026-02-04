@@ -44,7 +44,7 @@ jobs:
         which pip
         realpath $(which pip)
         ls -al $(which pip)
-        ldd $(which pip)
+        cat $(which pip)
         strace -ff pip install wheel
         pip install -r requirements.txt
         pip install coverage
