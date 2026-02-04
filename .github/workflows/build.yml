@@ -28,10 +28,10 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
     - name: Set up dependencies
-      run: apt-get update && apt-get install -y nodejs git libmysqlclient-dev libsqlite3-0 strace
-    - name: Clear Python cache
-      run: |
-        rm -rf /__t/Python
+      run: apt-get update && apt-get install -y nodejs git libmysqlclient-dev libsqlite3-0 pkg-config
+    # - name: Clear Python cache
+    #   run: |
+    #     rm -rf /__t/Python
     - uses: actions/checkout@v4
     - name: Set up Python 3.12
       uses: actions/setup-python@v5
@@ -44,12 +44,7 @@ jobs:
         key: pip-${{ runner.os }}-${{ secrets.CACHE_VERSION }}-${{ hashFiles('requirements.txt') }}
     - name: Install unit test dependencies
       run: |
-        which pip
-        which python
-        realpath $(which pip)
-        ls -al $(which pip)
-        cat $(which pip)
-        strace -ff pip install wheel
+        pip install wheel
         pip install -r requirements.txt
         pip install coverage
         cp .ci.settings.py dmoj/local_settings.py
