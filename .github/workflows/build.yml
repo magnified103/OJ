@@ -43,6 +43,7 @@ jobs:
       run: |
         which pip
         realpath $(which pip)
+        ls -al $(which pip)
         pip install wheel
         pip install -r requirements.txt
         pip install coverage
