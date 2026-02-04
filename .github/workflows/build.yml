@@ -44,7 +44,7 @@ jobs:
         which pip
         realpath $(which pip)
         ls -al $(which pip)
-        strace pip install wheel
+        strace -ff pip install wheel
         pip install -r requirements.txt
         pip install coverage
         cp .ci.settings.py dmoj/local_settings.py
