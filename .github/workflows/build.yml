@@ -42,6 +42,7 @@ jobs:
     - name: Install unit test dependencies
       run: |
         which pip
+        which python
         realpath $(which pip)
         ls -al $(which pip)
         cat $(which pip)
