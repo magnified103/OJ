@@ -18,7 +18,7 @@ jobs:
   unit:
     runs-on: ubuntu-latest
     container:
-      image: "ubuntu:latest"
+      image: ghcr.io/actions/actions-runner:latest
     services:
       mysql:
         image: mysql:8.0
